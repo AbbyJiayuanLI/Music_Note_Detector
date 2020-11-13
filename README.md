@@ -4,4 +4,5 @@
   - https://en.wikipedia.org/wiki/Fundamental_frequency
 # Methods
   1. Wavelet Transform 小波变换
+  - localize frequency and time using different base signal
   - https://zhuanlan.zhihu.com/p/22450818
