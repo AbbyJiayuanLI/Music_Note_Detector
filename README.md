@@ -11,3 +11,7 @@
       - localize frequency and time using different base signal
           - https://zhuanlan.zhihu.com/p/22450818
           - http://users.rowan.edu/~polikar/WTtutorial.html
+
+# Work Division
+  1. Li Jiayuan: Time domain methods
+  2. Xiao Nan: Freqquency domain methods
