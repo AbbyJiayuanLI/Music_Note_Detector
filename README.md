@@ -13,7 +13,7 @@
      - Cepstrum
   4. Wavelet Transform 小波变换
       - For non-stationary signal, FT is not a good choice
-      - localize frequency and time using different base signal
+      - localize frequency and time by scaling and shifting wavelet
           - https://zhuanlan.zhihu.com/p/22450818
           - http://users.rowan.edu/~polikar/WTtutorial.html
           - https://zhuanlan.zhihu.com/p/44215123
