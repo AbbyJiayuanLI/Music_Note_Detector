@@ -3,10 +3,14 @@
       - https://www.zhihu.com/topic/20762575/intro
       - https://en.wikipedia.org/wiki/Fundamental_frequency
 # Methods
-  1. Method overview
+  1. Method Overview
      - http://mirlab.org/jang/books/audiosignalprocessing/
-  2. Short-term autocorrelation method (ACF)
-  3. Short-term average amplitude difference function (AMDF)
+  2. Time Domain
+     - Short-term autocorrelation method (ACF)
+     - Short-term average amplitude difference function (AMDF)
+  3. Frequency Domain
+     - Harmonic product spectrum (HPS)
+     - Cepstrum
   4. Wavelet Transform 小波变换
       - For non-stationary signal, FT is not a good choice
       - localize frequency and time using different base signal
