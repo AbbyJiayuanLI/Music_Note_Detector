@@ -32,7 +32,7 @@ while (position+blockSize < N)
 end
 
 figure(3);
-noteTrack = medfilt1(noteTrack, 100);
+% noteTrack = medfilt1(noteTrack, 100);
 t = 0:N/fs/(length(noteTrack)-1):N/fs;
 plot(t, noteTrack)
 xlabel('Time [sec]')

@@ -1,43 +1,41 @@
 clc
 clear
+
+tic
 [music, fs] = audioread('sample_single_note.mp3');
 % [music, fs] = audioread('sample_double_note.mp3');
+% [music, fs] = audioread('sample_not_align_double_note.mp3');
 music = music(:,1);   % one channel
-blockSize = 4000;
-fftSize = 8000;
-step = 500;
+% music = music(1*fs:length(music));
+% music = music(9.5*fs:11*fs);
+blockSize = 2000;
+fftSize = 6000;
+step = 1000;
 N = length(music);
-
 noteTrack = [];
 position = 1; i = 1;
 while (position+blockSize < N)
     win = hanning(blockSize);
-    frame = music(position:position+blockSize-1).*win;
-    frame = movmean(frame,10);
-    padding = zeros(fftSize-length(frame), 1);
-    frame = [frame;padding];
-    % add a zero padding here for frame, remember to adjust the xf
-%     frame = music(position:position+blockSize-1);
-    FFT = fft(frame, fftSize);
-    FFT = abs(FFT);
-    hps1 = downsample(FFT,1);
-    hps2 = downsample(FFT,2);
-    padding = zeros((length(hps1)-length(hps2)), 1);
-    hps2 = [hps2;padding];
-    hps3 = downsample(FFT,3);
-    padding = zeros((length(hps2)-length(hps3)), 1);
-    hps3 = [hps3;padding];
-    totalHPS = hps1.*hps2.*hps3;
+    frame = [music(position:position+blockSize-1).*win;zeros(fftSize-blockSize, 1)];
+%     frame = movmean(frame,10);
+%     frame = [music(position:position+blockSize-1);zeros(fftSize-blockSize, 1)];
 
-%     hps4 = downsample(FFT,4);
-%     padding = zeros((length(hps3)-length(hps4)), 1);
-%     hps4 = [hps4;padding];
-%     totalHPS = hps1.*hps2.*hps3.*hps4;
+    FFT = abs(fft(frame, fftSize));
+    hps1 = FFT;
+    hps2 = downsample(FFT,2);
+    hps3 = downsample(FFT,3);
+%     len = length(hps3);
+%     totalHPS = hps1(1:len)+hps2(1:len)+hps3;
+    
+    hps4 = downsample(FFT,4);
+    len = length(hps4);
+%     totalHPS = hps1(1:len)+hps2(1:len)+hps3(1:len)+hps4;
+    totalHPS = hps1(1:len).*hps2(1:len).*hps3(1:len).*hps4;
     
     plotProcess = 0;
     if (plotProcess == 1)
         figure(3);
-        lim = 4000;
+        lim = 400;
         subplot(4,1,1);
         plot(hps1);
         xlim([0, lim]);
@@ -61,9 +59,9 @@ while (position+blockSize < N)
 %         noteTrack(i) = (freq);
     else
 %         anti octave error
-%         if (idx(2) < idx(1) && peaks(2) >= 0.45*peaks(1))
-%             idx(1) = idx(2);
-%         end
+        if (idx(2) < 0.6*idx(1) && idx(2) > 0.4*idx(1) && peaks(2) >= 0.3*peaks(1))
+            idx(1) = idx(2);
+        end
 
         freq = (idx(1)-1)*fs/fftSize;
         noteTrack(i) = freq2note(freq);
@@ -73,9 +71,9 @@ while (position+blockSize < N)
     i = i + 1;
     
 end
-
+toc
 figure(2);
-noteTrack = medfilt1(noteTrack, 100);
+% noteTrack = medfilt1(noteTrack, 100);
 t = 0:N/fs/(length(noteTrack)-1):N/fs;
 plot(t, noteTrack)
 xlabel('Time [sec]')
