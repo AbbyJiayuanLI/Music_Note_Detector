@@ -21,4 +21,4 @@
 
 # Work Division
   1. Li Jiayuan: Time domain methods
-  2. Xiao Nan: Freqquency domain methods
+  2. Xiao Nan: Frequency domain methods
