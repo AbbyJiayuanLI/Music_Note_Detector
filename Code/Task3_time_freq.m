@@ -1,4 +1,4 @@
-%% 
+%% Load Music
 clc
 clear
 
@@ -8,56 +8,49 @@ clear
 [music, fs] = audioread('fur_elise_single_40.mp3');
 music = music(:,1);   % one channel
 % music = music(9.5*fs:11*fs);
+music = resample(music,1,10);
+fs = fs/10;
+% sound(music, fs/10);
 N = length(music);
-cwt(music, 'bump', fs);
+% cwt(music, 'bump', fs);
 
-% [wavelet, f] = cwt(music, 'bump', fs);
-% save('cwt_sample_single_note','wavelet','f');
-load('cwt_sample_single_note','wavelet','f');
-%% 
+%% Wavelet
 
 blockSize = 10;
 stepSize = 10;
-noteTrack = [];
-position = 1; i = 1;
-while (position+blockSize < N)
-%     win = hanning(blockSize);
-%     frame = music(position:position+blockSize-1).*win;
-%     frame = movmean(frame,10);
-    frame = wavelet(:,position:position+blockSize-1);
+noteTrack = zeros(N, 1);
+position = 1; 
+% i = 1;
+fmin = 50;
+fmax = 700;
+[wavelet, f] = cwt(music, 'bump', fs);
 
-% 
-% %     [peaks,idx]=findpeaks(totalHPS, 'SORTSTR', 'descend');
-    [~,idx] = max(frame(:));
-    [I_row, I_col] = ind2sub(size(frame),idx);
-    freq = f(I_row);
-%     
-% %     if (isempty(idx))
-% %         freq = 0;
-% %         noteTrack(i) = freq2note(freq);
-% % %         noteTrack(i) = (freq);
-% %     else
-% %         freq = (idx(1)-1)*fs/blockSize;
-% %         noteTrack(i) = freq2note(freq);
-% %     end
-%     
-    if (freq < 50)
-        freq = 0;
-    end
-    [row, ~] = find(f>0.45*freq & f<0.55*freq);
-%     row = row(1);
-    if (~isempty(row) && frame(row(1),I_col) > 0.4*frame(I_row,I_col))
-        freq = f(row(1));
-    end
+tic
+parfor i=1:1:N
+    frame = abs(wavelet(:,i));
+    [~,idx]=findpeaks(frame, 'SORTSTR', 'descend');
+    freq = f(idx(1));
+    freq(freq < fmin || freq > fmax) = 0;
     noteTrack(i) = freq2note(freq);
-    position = position + stepSize;
-    i = i + 1;
-    i
-    
 end
 
+noteTrack = medfilt1(noteTrack, 100);
+% noteTrack = movmean(noteTrack,100);
+% noteTrack = medfilt1(noteTrack, 80);
+noteTrack = movmax(noteTrack, 300);
+% noteTrack = movmean(noteTrack,200);
+% noteTrack = movmax(noteTrack, 5);
+
+toc
+
+%% Plot
 figure(4);
 % noteTrack = medfilt1(noteTrack, 100);
-t = 0:N/fs/(length(noteTrack)-1):N/fs;
-plot(t, noteTrack)
+% t = 0:N/fs/(length(noteTrack)-1):N/fs;
+% plot(t, noteTrack)
+plot(noteTrack)
 % xlabel('Time [sec]')
+%% Play Sound
+music_reconstruct = note2music(noteTrack, fs, N);
+sound(music_reconstruct, fs);
+
