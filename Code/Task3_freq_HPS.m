@@ -1,30 +1,34 @@
 %% Load Music
 clc
 clear
+tic
+[music, fs] = audioread('music_fur_elise.mp3');
+music = music(1:20.25*fs,1,1);   % one channel
 
 
-[music, fs] = audioread('fur_elise_single_70.mp3');
-% [music, fs] = audioread('fur_elise_single_40.mp3');
-% [music, fs] = audioread('octave_c3_c4.mp3');
-% [music, fs] = audioread('sample_single_note.mp3');
-% [music, fs] = audioread('sample_single_note_octave_70.mp3');
-% [music, fs] = audioread('sample_double_note.mp3');
-% [music, fs] = audioread('sample_not_align_double_note.mp3');
-% [music, fs] = audioread('Elise.mp3');
-music = music(:,1);   % one channel
 % music = music(1*fs:length(music));
-% music = music(1*fs:3*fs);
+% music = music(10*fs:11*fs);
 
 %% HPS
 
-blockSize = 6000;
-fftSize = fs/2;
-stepSize = 400;
-threshold = 0.0001;
-decay = 0.9;
+threshold = 0.00001;
+decay = 0;
 
 plotHPSProcess = 0;
+filterON = 1;
+downSampleFactor = 1;
 
+
+if (downSampleFactor >= 2)
+    lpf = fir1(64,1/downSampleFactor,'low');
+    music = filter(lpf,1,music);
+    music = resample(music,1,downSampleFactor);
+    fs = fs/downSampleFactor;
+end
+
+fftSize = round(fs/2);
+blockSize = round(6000/downSampleFactor);
+stepSize = round(400/downSampleFactor);
 N = length(music);
 numRound = round((N-blockSize)/stepSize);
 noteTrack = zeros(numRound, 1);
@@ -32,40 +36,31 @@ position = 1;
 i = 1;
 
 freqSet = zeros(numRound, 1);
-% energy = [];
-tic
-while (position+blockSize < N)
-    win = hanning(blockSize);
-    frame = music(position:position+blockSize-1).*win;
-%     frame = music(position:position+blockSize-1);
 
-%     frame = movmean(frame,10);
+while (position+blockSize < N)
+%     win = hanning(blockSize);
+%     frame = music(position:position+blockSize-1).*win;
+    frame = music(position:position+blockSize-1);
     
-%     energy(i) = sum(frame.^2)/blockSize;
-    if (sum(frame.^2)/blockSize<threshold)
-        freq = 0;
-        freqSet(i) = freq;
-        
-        noteTrack(i) = freq2note(freq);
-%         noteTrack(i) = noteTrack(i-1);
+    if (sum(frame.^2)/blockSize<threshold) 
+        noteTrack(i) = freq2note(nan);
     else
         frameZeroPadding = [frame;zeros(fftSize-blockSize, 1)];
         FFT_raw = abs(fft(frameZeroPadding, fftSize));    
-        if (~isempty(freqSet) && freqSet(i-1)~=0)
-%         n = 0:1:blockSize-1;
-%         frame = frame - 0.01*reshape(cos(2*pi*freqSet(i-1)*n),[blockSize 1]);
+        if (i~=1 && ~isnan(noteTrack(i-1)))
+
 %             figure(10);
-%             lim = 400;
+%             lim = 800;
 %             subplot(3,1,1);
-%             plot(FFT);
+%             plot(FFT_raw);grid on
 %             xlim([0, lim]);
 %             subplot(3,1,2);
-%             plot(FFT_old);
+%             plot(FFT_old);grid on
 %             xlim([0, lim]);
 %             subplot(3,1,3);
-%             plot(FFT- decay*FFT_old);
+%             plot(abs(FFT_raw- decay*FFT_old));grid on
 %             xlim([0, lim]);
-%             lenTake = fs/fftSize*8*freqSet(i-1);
+
             lenTake = fftSize;
             FFT = FFT_raw - decay*[FFT_old(1:lenTake);zeros(fftSize-lenTake,1)];
             FFT = abs(FFT);
@@ -78,18 +73,24 @@ while (position+blockSize < N)
         hps3 = downsample(FFT,3);
         len = length(hps3);
         totalHPS = hps1(1:len).*hps2(1:len).*hps3;
-
+        
 %         hps4 = downsample(FFT,4);
 %         len = length(hps4);
 %         totalHPS = hps1(1:len).*hps2(1:len).*hps3(1:len).*hps4;
         
         if (plotHPSProcess == 1)
-            figure(2);lim = 1000;
-            subplot(5,1,1);plot(hps1);xlim([0, lim]);
-            subplot(5,1,2);plot(hps2);xlim([0, lim]);
-            subplot(5,1,3);plot(hps3);xlim([0, lim]);
-            subplot(5,1,4);plot(hps4);xlim([0, lim]);
-            subplot(5,1,5);plot(totalHPS);xlim([0, lim]);
+            figure(2);
+            lim = len/4;
+            subplot(4,1,1);plot(hps1);xlim([0, lim]);title("|X(\omega_0)|");grid on
+            subplot(4,1,2);plot(hps2);xlim([0, lim]);title("|X(\omega_1)|");grid on
+            subplot(4,1,3);plot(hps3);xlim([0, lim]);title("|X(\omega_2)|");grid on
+            subplot(4,1,4);plot(totalHPS);xlim([0, lim]);title("HPS");grid on
+
+%             subplot(5,1,1);plot(hps1);xlim([0, lim]);title("|X(\omega_0)|");grid on
+%             subplot(5,1,2);plot(hps2);xlim([0, lim]);title("|X(\omega_1)|");grid on
+%             subplot(5,1,3);plot(hps3);xlim([0, lim]);title("|X(\omega_2)|");grid on
+%             subplot(5,1,4);plot(hps4);xlim([0, lim]);title("|X(\omega_3)|");grid on
+%             subplot(5,1,5);plot(totalHPS);xlim([0, lim]);title("HPS");grid on
         end
 
         fmin = 50;
@@ -106,9 +107,7 @@ while (position+blockSize < N)
     %     [~,idx] = max(totalHPS);
 
         if (isempty(idx))
-            freq = 0;
-            freqSet(i) = freq;
-            noteTrack(i) = freq2note(freq);
+            noteTrack(i) = freq2note(nan);
     %         noteTrack(i) = (freq);
         else
     %         anti octave error
@@ -127,22 +126,35 @@ while (position+blockSize < N)
     i = i + 1;
     
 end
-% noteTrack = movmax(noteTrack, 5);
-% noteTrack = movmin(noteTrack, 10);
-
-noteTrack = medfilt1(noteTrack, 5);
-noteTrack = movmax(noteTrack, 5);
-noteTrack = movmax(noteTrack, 5);
-
-% noteTrack = medfilt1(noteTrack, 10);
+if (filterON == 1)  
+    % noteTrack = movmax(noteTrack, 5);
+    % noteTrack = movmin(noteTrack, 10);
+    noteTrack = medfilt1(noteTrack, 5);
+    noteTrack = movmax(noteTrack, 5);
+    noteTrack = movmax(noteTrack, 5);
+    % noteTrack = medfilt1(noteTrack, 10);
+end
 
 toc
 %% Plot
 
-figure(3);
+% figure;
+% t = 0:N/fs/(length(noteTrack)-1):N/fs;
+% plot(t, noteTrack,'linewidth',1.5)
+% legend('HPS');
+% grid on
+% xlabel('Time [sec]')
+% ylabel('Note')
+% set(gca, 'fontsize', 14);
+
+%% Error Rate
+errorRate = errorRate(noteTrack,'HPS',N/fs);
+str = ['The Error Rate is: ' num2str(errorRate)];
+disp(str)
+
 t = 0:N/fs/(length(noteTrack)-1):N/fs;
-plot(t, noteTrack)
-xlabel('Time [sec]')
+hps_t = t;
+hps_noteTrack = noteTrack;
 
 %% Play Sound
 % music_reconstruct = note2music(noteTrack, fs, N);
