@@ -1,5 +1,7 @@
 # Introduction
-In this project, we developed a note detection system which can receive a piece of monophonic music played by piano and identify which note is present at each moment in the music. We utilized the frequency relationship between pitch and harmonics components in music and estimated the music notes by calculating the signal period within a short time window. Altogether 5 methods from time domain, frequency domain, and time-frequency domain are presented with detection accuracy all above 32/33 and detection error rate around lower than 22%. We also tried to apply down-sampling to reduce computational complexity and addressed our newly-found octave jump problem using subtraction method. Further improvements such as end-point detection and polyphonic music note detection are discussed as well.
+In this project, we developed a note detection system which can receive a piece of monophonic music played by piano and identify which note is present at each moment in the music. We utilized the frequency relationship between pitch and harmonics components in music and estimated the music notes by calculating the signal period within a short time window. 
+
+Altogether 5 methods from time domain, frequency domain, and time-frequency domain are presented with detection accuracy all above 32/33 and detection error rate around lower than 22%. We also tried to apply down-sampling to reduce computational complexity and addressed our newly-found octave jump problem using subtraction method. Further improvements such as end-point detection and polyphonic music note detection are discussed as well.
 
 # Basic Concept
   1. Pitch, harmonics, standing wave
@@ -12,7 +14,7 @@ In this project, we developed a note detection system which can receive a piece 
   3. Silence Checking
   4. Note Detection
   5. Smoothing
-  6.Result Evaluation
+  6. Result Evaluation
   
 # Detection Methods
   1. Method Overview
