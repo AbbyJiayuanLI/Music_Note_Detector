@@ -47,5 +47,5 @@ I would like to continue this topic after finishing the project. Here I list som
 1. End-point Detection
 2. Weak Note Detection
 3. Polyphonic Music Note Detection
-  - Iterative Subtraction: Harmonic Model? Overlapping Harmonics?
+    - Iterative Subtraction: Harmonic Model? Overlapping Harmonics?
 
